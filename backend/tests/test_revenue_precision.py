@@ -6,7 +6,7 @@ from app.api.v1 import dashboard
 
 
 @pytest.mark.asyncio
-async def test_dashboard_rounds_revenue_to_cents(monkeypatch):
+async def test_dashboard_preserves_three_decimal_precision(monkeypatch):
     async def summary(property_id, tenant_id):
         return {
             "property_id": property_id,
@@ -21,12 +21,12 @@ async def test_dashboard_rounds_revenue_to_cents(monkeypatch):
         "prop-001", current_user=type("User", (), {"tenant_id": "tenant-a"})()
     )
 
-    assert result["total_revenue"] == Decimal("11.00")
+    assert result["total_revenue"] == Decimal("10.999")
     assert isinstance(result["total_revenue"], Decimal)
 
 
 @pytest.mark.asyncio
-async def test_dashboard_rounds_half_cent_away_from_zero(monkeypatch):
+async def test_dashboard_preserves_sub_cent_values(monkeypatch):
     async def summary(property_id, tenant_id):
         return {
             "property_id": property_id,
@@ -41,4 +41,4 @@ async def test_dashboard_rounds_half_cent_away_from_zero(monkeypatch):
         "prop-001", current_user=type("User", (), {"tenant_id": "tenant-a"})()
     )
 
-    assert result["total_revenue"] == Decimal("10.01")
+    assert result["total_revenue"] == Decimal("10.005")

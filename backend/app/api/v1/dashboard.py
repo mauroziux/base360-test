@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from app.services.cache import get_revenue_summary
 from app.core.auth import authenticate_request as get_current_user
 
@@ -16,11 +16,10 @@ async def get_dashboard_summary(
     
     revenue_data = await get_revenue_summary(property_id, tenant_id)
     
-    # Convert and round at the reporting boundary with decimal arithmetic;
-    # binary floats can introduce errors into financial totals.
-    total_revenue = Decimal(str(revenue_data['total'])).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
+    # Keep the database's three-decimal precision through the API. The
+    # frontend may format this for display, but reporting must not discard
+    # sub-cent precision during calculation.
+    total_revenue = Decimal(str(revenue_data['total']))
     
     return {
         "property_id": revenue_data['property_id'],
