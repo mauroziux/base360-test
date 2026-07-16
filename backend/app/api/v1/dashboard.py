@@ -6,6 +6,19 @@ from app.core.auth import authenticate_request as get_current_user
 
 router = APIRouter()
 
+
+@router.get("/dashboard/properties")
+async def get_dashboard_properties(
+    current_user: dict = Depends(get_current_user),
+) -> list[Dict[str, Any]]:
+    tenant_id = getattr(current_user, "tenant_id", None)
+    if not tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant context is required")
+
+    from app.services.properties import get_tenant_properties
+    return await get_tenant_properties(tenant_id)
+
+
 @router.get("/dashboard/summary")
 async def get_dashboard_summary(
     property_id: str,
